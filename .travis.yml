@@ -29,7 +29,7 @@ jobs:
         clone: true
       dist: bionic
       script:
-        - sudo apt-get install -qq autoconf automake autopoint flex gettext graphviz help2man m4 texinfo
+        - sudo apt-get install -qq autoconf automake autopoint expect flex gettext graphviz help2man m4 texinfo
         - autoconf --version
         - automake --version
         - autopoint --version
@@ -288,6 +288,18 @@ jobs:
          - CC=gcc-4.6
          - CXX=g++-4.6
 
+    - name: "GCC 4.4"
+      stage: check
+      os: linux
+      dist: precise
+      addons:
+        apt:
+          packages: g++-4.4
+      env:
+         - CC=gcc-4.4
+         - CXX=g++-4.4
+
+
     ## ------- ##
     ## Clang.  ##
     ## ------- ##
@@ -458,6 +470,19 @@ jobs:
         - CC=/usr/bin/clang
         - CXX=/usr/bin/clang++
 
+    - name: "Clang 3.0"
+      stage: check
+      os: linux
+      # Not available on Xenial.
+      dist: precise
+      addons:
+        apt:
+          packages: clang
+      env:
+        # See comment for 3.4.
+        - CC=/usr/bin/clang
+        - CXX=/usr/bin/clang++
+
 ## From https://docs.gitlab.com/ce/ci/ssh_keys/#ssh-keys-when-using-the-docker-executor.
 ## Applies to Travis too.  Applied to all the 'script's (of all the jobs).
 before_script:
@@ -466,7 +491,8 @@ before_script:
   # $SSH_PRIVATE_KEY is multiline.  Use $'...' to register its value: $'-----BEGIN OPENSSH PRIVATE KEY-----\nXXXXX...\n...==\n-----END OPENSSH PRIVATE KEY-----'.
   - echo "$SSH_PRIVATE_KEY" >/tmp/key.id_rsa
   - chmod 600 /tmp/key.id_rsa
-  - ssh-add /tmp/key.id_rsa </dev/null
+  - sudo apt-get install expect
+  - echo 'spawn ssh-add /tmp/key.id_rsa; expect { "Enter passphrase" { send "\r"; exp_continue } ; eof }' | expect
   - mkdir -p ~/.ssh
   - chmod 700 ~/.ssh
   - echo '|1|bpc51UGxoDZjCPiwRlCStW32trI=|rfh6mLoLZv/vAvOVrpZXI1hTLxg= ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBIR+ckMoJTNXHvAQLHWSfrRnrNJGW2ZR6kr5pBVDGCkz1v1RcQ5rleq0NAt9kS3v4hgnuLiEVnK7KDRzcEH3ikc=' >>~/.ssh/known_hosts
